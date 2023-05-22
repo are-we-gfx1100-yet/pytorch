@@ -347,12 +347,7 @@ class MiscTests(torch._dynamo.test_case.TestCase):
         self.assertTrue(same(ref, res))
         self.assertEqual(counts.frame_count, 1)
 
-        expected_op_count = (
-            ifdynstaticdefault(3, 12)
-            if torch._dynamo.testing.config.dynamic_shapes
-            else 3
-        )
-        self.assertEqual(counts.op_count, expected_op_count)
+        self.assertEqual(counts.op_count, 3)
 
     def test_user_defined_binop(self):
         class MyClass:
@@ -376,7 +371,7 @@ class MiscTests(torch._dynamo.test_case.TestCase):
 
         self.assertTrue(same(ref, res))
         self.assertEqual(counts.frame_count, 1)
-        expected_op_count = ifdyn(ifdynstaticdefault(2, 4), 2)
+        expected_op_count = ifdyn(ifdynstaticdefault(2, 3), 3)
         self.assertEqual(counts.op_count, expected_op_count)
 
     def test_compare_shapes_eq(self):
@@ -928,8 +923,8 @@ class MiscTests(torch._dynamo.test_case.TestCase):
         # output anything and none of the traced operations have side
         # effects.  Probably need better heuristic for bailing on
         # dynamo if there are no outputs
-        self.assertEqual(cnts.frame_count, ifdyn(ifdynstaticdefault(0, 1), 0))
-        self.assertEqual(cnts.op_count, ifdyn(ifdynstaticdefault(0, 2), 0))
+        self.assertEqual(cnts.frame_count, ifdyn(0, 1))
+        self.assertEqual(cnts.op_count, ifdyn(0, 2))
 
     def test_list_slice_mul(self):
         def fn(count):
@@ -940,8 +935,8 @@ class MiscTests(torch._dynamo.test_case.TestCase):
         cnts = torch._dynamo.testing.CompileCounter()
         opt_fn = torch._dynamo.optimize(cnts)(fn)
         self.assertEqual(opt_fn(2), [2, 3] * 4)
-        self.assertEqual(cnts.frame_count, ifdyn(ifdynstaticdefault(0, 1), 0))
-        self.assertEqual(cnts.op_count, ifdyn(ifdynstaticdefault(0, 2), 0))
+        self.assertEqual(cnts.frame_count, ifdyn(0, 1))
+        self.assertEqual(cnts.op_count, ifdyn(0, 2))
 
     def test_tuple_mul(self):
         def fn(count):
@@ -951,8 +946,8 @@ class MiscTests(torch._dynamo.test_case.TestCase):
         cnts = torch._dynamo.testing.CompileCounter()
         opt_fn = torch._dynamo.optimize(cnts, nopython=True)(fn)
         self.assertEqual(opt_fn(2), (2, 3) * 4)
-        self.assertEqual(cnts.frame_count, ifdyn(ifdynstaticdefault(0, 1), 0))
-        self.assertEqual(cnts.op_count, ifdyn(ifdynstaticdefault(0, 2), 0))
+        self.assertEqual(cnts.frame_count, ifdyn(0, 1))
+        self.assertEqual(cnts.op_count, ifdyn(0, 2))
 
     def test_tuple_mul_with_shape(self):
         def fn(a):
@@ -2293,14 +2288,14 @@ def fn():
         opt_m(data, correct_ref_id)
         # Extra op is the recorded equality test (although once
         # the trace is flattened this is dead!)
-        self.assertEqual(cnts.op_count, ifdyn(ifdynstaticdefault(2, 3), 2))
+        self.assertEqual(cnts.op_count, ifdyn(2, 3))
 
         torch._dynamo.reset()
         cnts = torch._dynamo.testing.CompileCounter()
         incorrect_ref_id = id(m) + 1
         opt_m = torch._dynamo.optimize(cnts, nopython=True)(m)
         opt_m(data, incorrect_ref_id)
-        self.assertEqual(cnts.op_count, ifdyn(ifdynstaticdefault(1, 2), 1))
+        self.assertEqual(cnts.op_count, ifdyn(1, 2))
 
     def test_inline_func_jump_on_tensor_condition(self):
         def f1(input):
@@ -3952,7 +3947,7 @@ def fn():
             if not torch._dynamo.config.dynamic_shapes:
                 self.assertExpectedInline(
                     guard_failure[0],
-                    """L['k'] == 3""",
+                    """tensor 'L['x']' size mismatch at index 0. expected 2, actual 3""",
                 )
 
     @patch.object(torch._dynamo.config, "dynamic_shapes", True)
@@ -4265,7 +4260,7 @@ def fn():
             ref = fn(x, y)
             res = opt_fn(x, y)
             self.assertTrue(same(ref, res))
-        self.assertEqual(cnt.frame_count, ifdyn(ifdynstaticdefault(5, 1), 2), 2)
+        self.assertEqual(cnt.frame_count, ifunspec(ifdyn(2, 1), 5))
 
     # specifically test for tensor.attribute -> torch.something()
     def test_real_imag_tensor_attribute(self):
