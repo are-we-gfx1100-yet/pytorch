@@ -19,6 +19,10 @@ install_ubuntu() {
       # gpg-agent is not available by default on 20.04
       apt-get install -y --no-install-recommends gpg-agent
     fi
+    if [[ $UBUNTU_VERSION == 22.04 ]]; then
+      # gpg-agent is not available by default on 22.04
+      apt-get install -y --no-install-recommends gpg-agent
+    fi
     apt-get install -y kmod
     apt-get install -y wget
 
@@ -52,6 +56,8 @@ install_ubuntu() {
     local rocm_baseurl="http://repo.radeon.com/rocm/apt/${ROCM_VERSION}"
     echo "deb [arch=amd64] ${rocm_baseurl} ${ROCM_REPO} main" > /etc/apt/sources.list.d/rocm.list
     apt-get update --allow-insecure-repositories
+
+    printf 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | tee /etc/apt/preferences.d/repo-radeon-pin-600
 
     DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated \
                    rocm-dev \
