@@ -162,7 +162,7 @@ file(GLOB flash_attention_cuda_cu "native/transformers/cuda/flash_attn/*.cu")
 file(GLOB flash_attention_cuda_cpp "native/transformers/cuda/flash_attn/*.cpp")
 
 # flash_attention_rocm sources
-file(GLOB flash_attention_rocm_hip_hip "${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/flash-attention-rocm/csrc/flash_attn_rocm/src/fmha_*_fp16_bf16_kernel.gfx1100.cpp")
+file(GLOB flash_attention_rocm_hip_hip "${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/flash-attention-rocm/csrc/flash_attn_rocm/src/fmha_*_fp16_bf16_kernel.gfx1100.hip")
 file(GLOB flash_attention_rocm_hip_cpp "${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/flash-attention-rocm/fmha_api.adapter.cpp")
 
 #Mem_eff attention sources
