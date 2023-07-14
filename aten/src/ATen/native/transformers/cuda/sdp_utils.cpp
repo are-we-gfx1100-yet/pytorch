@@ -531,7 +531,7 @@ bool check_requires_grad_and_head_dim_gt64_and_sm_ge86_lt90(
 }
 
 bool use_flash_attention(sdp_params params, bool debug) {
-#ifndef USE_FLASH_ATTENTION
+#if !defined(USE_FLASH_ATTENTION) && !defined(USE_FLASH_ATTENTION_ROCM)
   TORCH_CHECK(!debug, "Torch was not compiled with flash attention.");
   return false;
 #endif
@@ -553,6 +553,7 @@ bool use_flash_attention(sdp_params params, bool debug) {
     }
   }
 
+#if defined(USE_FLASH_ATTENTION)
   auto dprop = at::cuda::getCurrentDeviceProperties();
   if (dprop->major >= 8) {
     constexpr auto sm80_flash_dtypes =
@@ -562,6 +563,11 @@ bool use_flash_attention(sdp_params params, bool debug) {
     constexpr auto default_flash_dtypes = array_of<at::ScalarType>(at::kHalf);
     return check_tensor_dtype(params, default_flash_dtypes, debug);
   }
+#elif defined(USE_FLASH_ATTENTION_ROCM)
+  return check_tensor_dtype(params, default_flash_dtypes, debug);
+#else
+  return false;
+#endif
 }
 
 bool use_mem_efficient_attention(sdp_params params, bool debug) {

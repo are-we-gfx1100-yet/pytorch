@@ -161,6 +161,10 @@ file(GLOB native_utils_cpp "native/utils/*.cpp")
 file(GLOB flash_attention_cuda_cu "native/transformers/cuda/flash_attn/*.cu")
 file(GLOB flash_attention_cuda_cpp "native/transformers/cuda/flash_attn/*.cpp")
 
+# flash_attention_rocm sources
+file(GLOB flash_attention_rocm_hip_hip "${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/flash-attention-rocm/csrc/flash_attn_rocm/src/fmha_*_fp16_bf16_kernel.gfx1100.cpp")
+file(GLOB flash_attention_rocm_hip_cpp "${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/flash-attention-rocm/fmha_api.adapter.cpp")
+
 #Mem_eff attention sources
 file(GLOB mem_eff_attention_cuda_cu "native/transformers/cuda/mem_eff_attention/*.cu")
 file(GLOB mem_eff_attention_cuda_kernels_cu "native/transformers/cuda/mem_eff_attention/kernels/*.cu")
@@ -174,6 +178,11 @@ if(USE_FLASH_ATTENTION)
   list(APPEND native_transformers_cuda_cu ${mem_eff_attention_cuda_kernels_cu})
   list(APPEND native_transformers_cuda_cpp ${mem_eff_attention_cuda_cpp})
   list(APPEND MEM_EFF_ATTENTION_CUDA_SOURCES ${native_transformers_cuda_cu} ${mem_eff_attention_cuda_cu} ${mem_eff_attention_cuda_kernels_cu})
+endif()
+
+if(USE_FLASH_ATTENTION_ROCM)
+  list(APPEND native_transformers_hip_hip ${flash_attention_rocm_hip_hip})
+  list(APPEND native_transformers_hip_cpp ${flash_attention_rocm_hip_cpp})
 endif()
 
 # XNNPACK
@@ -481,6 +490,10 @@ if(USE_CUDA AND NOT USE_ROCM)
   endif($ENV{ATEN_STATIC_CUDA})
 endif()
 
+if(USE_ROCM AND NOT USE_CUDA)
+  list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/flash-attention-rocm/csrc/flash_attn_rocm/composable_kernel/include)
+  list(APPEND ATen_HIP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/flash-attention-rocm/csrc/flash_attn_rocm/composable_kernel/library/include)
+endif()
 
   if(USE_MAGMA)
     if(USE_CUDA AND NOT BUILD_LAZY_CUDA_LINALG)

@@ -42,6 +42,8 @@
 #include <ATen/native/transformers/cuda/mem_eff_attention/kernel_forward.h>
 #include <ATen/native/transformers/cuda/mem_eff_attention/kernels/cutlassF.h>
 #include <ATen/native/transformers/cuda/mem_eff_attention/pytorch_utils.h>
+#elif defined(USE_FLASH_ATTENTION_ROCM)
+#include <ATen/native/transformers/cuda/flash_attn_rocm/fmha_api.h>
 #endif
 
 namespace at {

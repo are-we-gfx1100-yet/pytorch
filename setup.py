@@ -103,6 +103,9 @@
 #   USE_FLASH_ATTENTION=0
 #     disables building flash attention for scaled dot product attention
 #
+#   USE_FLASH_ATTENTION_ROCM=0
+#     disables building flash attention rocm for scaled dot product attention
+#
 #   USE_LEVELDB
 #     enables use of LevelDB for storage
 #
