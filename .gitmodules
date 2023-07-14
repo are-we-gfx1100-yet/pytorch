@@ -157,3 +157,6 @@
 [submodule "third_party/mimalloc"]
 	path = third_party/mimalloc
 	url = https://github.com/microsoft/mimalloc.git
+[submodule "third_party/flash-attention-rocm"]
+	path = third_party/flash-attention-rocm
+	url = https://github.com/are-we-gfx1100-yet/flash-attention
