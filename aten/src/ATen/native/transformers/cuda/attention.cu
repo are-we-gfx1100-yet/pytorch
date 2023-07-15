@@ -773,7 +773,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor> _flash_attention_forward(
     bool is_causal,
     bool return_debug_mask,
     c10::optional<double> scale) {
-#if defined(USE_FLASH_ATTENTION)
+#if defined(USE_FLASH_ATTENTION) || defined(USE_FLASH_ATTENTION_ROCM)
   /*
   num_splits determines how much to parallelize over the seqlen_q dimension
   num_splits=0 means

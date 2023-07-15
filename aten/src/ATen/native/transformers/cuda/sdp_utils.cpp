@@ -530,6 +530,18 @@ bool check_requires_grad_and_head_dim_gt64_and_sm_ge86_lt90(
   return true;
 }
 
+// this is used to skip dgrad for rocm impl for now
+bool check_for_input_requires_grad(sdp_params params, bool debug) {
+  if (input_requires_grad(params)) {
+    if (debug) {
+      TORCH_WARN(
+          "Flash Attention kernel for ROCm doesn't implement dgrad for now.");
+    }
+    return false;
+  }
+  return true;
+}
+
 bool use_flash_attention(sdp_params params, bool debug) {
 #if !defined(USE_FLASH_ATTENTION) && !defined(USE_FLASH_ATTENTION_ROCM)
   TORCH_CHECK(!debug, "Torch was not compiled with flash attention.");
@@ -544,8 +556,12 @@ bool use_flash_attention(sdp_params params, bool debug) {
       check_batch_size_and_num_heads,
       check_for_attn_mask,
       check_head_dim_size,
+#if defined(USE_FLASH_ATTENTION)
       check_gpu_sm75_or_greater,
       check_requires_grad_and_head_dim_gt64_and_sm_ge86_lt90,
+#elif defined(USE_FLASH_ATTENTION_ROCM)
+      check_for_input_requires_grad,
+#endif
       check_for_seq_len_0_nested_tensor);
   for (auto& constraint : constraints) {
     if (!constraint(params, debug)) {
@@ -564,6 +580,7 @@ bool use_flash_attention(sdp_params params, bool debug) {
     return check_tensor_dtype(params, default_flash_dtypes, debug);
   }
 #elif defined(USE_FLASH_ATTENTION_ROCM)
+  constexpr auto default_flash_dtypes = array_of<at::ScalarType>(at::kHalf);
   return check_tensor_dtype(params, default_flash_dtypes, debug);
 #else
   return false;
